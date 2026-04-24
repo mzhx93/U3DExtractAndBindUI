@@ -20,6 +20,9 @@
 
 将 `Assets/Editor/UI/ExtractUIElements/` 目录整体复制到项目的 `Editor` 文件夹下即可。插件依赖：
 
+- Unity 2021.3+（使用 `GlobalObjectId` API）
+- `UnityEditorInternal`（`ReorderableList`，已内置）
+
 ---
 
 ## 快速上手
@@ -31,7 +34,7 @@
 | 字段 | 说明 | 示例 |
 |---|---|---|
 | UIForm Prefab 根路径 | 预制件所在目录（可多条） | `Assets/GameAssets/UIForms/` |
-| UIForm 基类全称 | 含命名空间的完整类名 | `XXX.UIFormLogic` |
+| UIForm 基类全称 | 含命名空间的完整类名 | `UnityGameFramework.Runtime.UIFormLogic` |
 
 > 已有配置时可直接点击 **更新** 修改路径，不会影响检索规则和互斥规则。
 

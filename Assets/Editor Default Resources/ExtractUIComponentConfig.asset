@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43c854275aa637442a4431cdb406dc05, type: 3}
+  m_Name: ExtractUIComponentConfig
+  m_EditorClassIdentifier: 
+  ValidPrefabRootPaths:
+  - Assets/GameAssets/UIForms
+  FormBaseTypeFullName: UnityGameFramework.Runtime.UIFormLogic
+  ComponentRules:
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.RectTransform
+    FieldPrefix: Rect
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.Image
+    FieldPrefix: Img
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.Button
+    FieldPrefix: Btn
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.Toggle
+    FieldPrefix: Tog
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.Slider
+    FieldPrefix: Sld
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.ScrollRect
+    FieldPrefix: Scroll
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.UI.Scrollbar
+    FieldPrefix: Scrollbar
+  - IsEnabled: 1
+    ComponentTypeFullName: TMPro.TextMeshProUGUI
+    FieldPrefix: Txt
+  - IsEnabled: 1
+    ComponentTypeFullName: TMPro.TMP_InputField
+    FieldPrefix: Input
+  - IsEnabled: 0
+    ComponentTypeFullName: UnityEngine.UI.InputField
+    FieldPrefix: Input
+  - IsEnabled: 1
+    ComponentTypeFullName: UnityEngine.CanvasGroup
+    FieldPrefix: CG
+  ExclusionRules:
+  - TriggerTypeFullName: UnityEngine.UI.Image
+    ExcludedTypeFullNames:
+    - UnityEngine.RectTransform
+  RulesLayout:
+    PrefixColWidth: 120
+  Markers:
+    Export: '@'
+    Skip: '#'
+    ExportPropagate: =
+    SkipPropagate: '-'
