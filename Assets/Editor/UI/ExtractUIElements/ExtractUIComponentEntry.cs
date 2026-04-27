@@ -14,7 +14,6 @@ namespace CQEditorTools
         private const string MenuConfig    = "Window/界面工具/初始化";
         private const string MenuRules     = "Window/界面工具/检索规则";
         private const string MenuExclusion = "Window/界面工具/互斥规则";
-        private const string MenuExport    = "Window/界面工具/导出设置";
         private const string MenuUpdate    = "Assets/Tools/更新UI组件字段";
 
         // ── Window 菜单 ───────────────────────────────────────────────────────
@@ -51,20 +50,6 @@ namespace CQEditorTools
         /// <summary>互斥规则菜单的可用性校验：仅当配置文件存在时允许点击。</summary>
         [MenuItem(MenuExclusion, true, 3)]
         private static bool OpenExclusionValidate()
-        {
-            return ExtractUIComponentConfig.GetOrCreate() != null;
-        }
-
-        /// <summary>打开导出设置窗口（面板4）。</summary>
-        [MenuItem(MenuExport, false, 4)]
-        private static void OpenExport()
-        {
-            ExtractUIComponentExportWindow.Open();
-        }
-
-        /// <summary>导出设置菜单的可用性校验：仅当配置文件存在时允许点击。</summary>
-        [MenuItem(MenuExport, true, 4)]
-        private static bool OpenExportValidate()
         {
             return ExtractUIComponentConfig.GetOrCreate() != null;
         }
