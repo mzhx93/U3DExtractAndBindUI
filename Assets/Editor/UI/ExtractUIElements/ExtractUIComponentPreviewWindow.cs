@@ -7,56 +7,61 @@ namespace CQEditorTools
 {
     /// <summary>
     /// 遍历结果预览窗口：树形结构，一行一节点，组件勾选框内联显示。
-    /// 格式：[缩进] 节点名: [✓]组件类型  [✓]组件类型  ...
+    /// 格式：[缩进] 节点名: [✓]ComponentType (FieldName)  ...
+    /// 勾选列表中若存在相同字段名，以红色色块高亮，并在导出时拦截提示。
     /// </summary>
     public sealed class ExtractUIComponentPreviewWindow : EditorWindow
     {
         // ── 数据模型 ──────────────────────────────────────────────────────────
         private GameObject m_PrefabAsset;
-        private Component m_FormComponent;
+        private Component  m_FormComponent;
 
         private sealed class ComponentItem
         {
             public ExtractedComponentEntry Entry;
-            public bool IsSelected;
+            public bool   IsSelected;
             public string FieldName;
         }
 
-        /// <summary>一个节点对应一行，含层级深度与该节点上的组件列表。</summary>
         private sealed class NodeRow
         {
-            public string NodeName;
-            public int Depth;
+            public string            NodeName;
+            public int               Depth;
             public List<ComponentItem> Items = new();
         }
 
-        private List<NodeRow> m_Rows = new();
+        private List<NodeRow>      m_Rows              = new();
+        /// <summary>当前勾选范围内存在重复的字段名集合，每帧刷新。</summary>
+        private HashSet<string>    m_DuplicateFieldNames = new();
 
         // ── 布局常量 ──────────────────────────────────────────────────────────
-        private const float IndentWidth = 14f;
+        private const float IndentWidth    = 14f;
         private const float NodeLabelWidth = 130f;
-        private const float ToggleWidth = 18f;
-        private const float TypeLabelWidth = 130f;
-        private const float RowH = 22f;
-        private const float ComponentGap = 6f;
+        private const float ToggleWidth    = 18f;
+        private const float TypeLabelWidth = 180f;   // 增大以容纳 "Type (FieldName)"
+        private const float RowH           = 22f;
+        private const float ComponentGap   = 6f;
+
+        private static readonly Color s_DuplicateHighlight = new Color(1f, 0.25f, 0.2f, 0.35f);
 
         // ── 滚动 ──────────────────────────────────────────────────────────────
         private Vector2 m_Scroll;
 
-        // ── 样式（首次 OnGUI 时创建）────────────────────────────────────────
+        // ── 样式 ──────────────────────────────────────────────────────────────
         private GUIStyle m_NodeLabelStyle;
         private GUIStyle m_TypeLabelStyle;
+        private GUIStyle m_DupWarnStyle;
 
         // ── 入口 ──────────────────────────────────────────────────────────────
         public static void Open(
-            GameObject prefabAsset,
-            Component formComponent,
+            GameObject                    prefabAsset,
+            Component                     formComponent,
             List<ExtractedComponentEntry> entries)
         {
             var win = GetWindow<ExtractUIComponentPreviewWindow>(
                 true, "更新UI组件字段 - 预览", true);
-            win.minSize = new Vector2(580f, 480f);
-            win.m_PrefabAsset = prefabAsset;
+            win.minSize       = new Vector2(620f, 480f);
+            win.m_PrefabAsset   = prefabAsset;
             win.m_FormComponent = formComponent;
             win.BuildRows(entries);
             win.Show();
@@ -83,11 +88,33 @@ namespace CQEditorTools
 
                 row.Items.Add(new ComponentItem
                 {
-                    Entry = entry,
+                    Entry      = entry,
                     IsSelected = !entry.IsExcludedByDefault,
-                    FieldName = BuildFieldName(entry)
+                    FieldName  = BuildFieldName(entry)
                 });
             }
+        }
+
+        /// <summary>
+        /// 扫描所有已勾选条目，将出现超过 1 次的字段名写入 m_DuplicateFieldNames。
+        /// 未勾选的条目不参与计数（不会被写入代码，无实际冲突）。
+        /// 每帧在 OnGUI 顶部调用，保证勾选状态变化后立即反映。
+        /// </summary>
+        private void RefreshDuplicates()
+        {
+            var counter = new Dictionary<string, int>();
+            foreach (var row in m_Rows)
+                foreach (var item in row.Items)
+                    if (item.IsSelected)
+                    {
+                        counter.TryGetValue(item.FieldName, out var c);
+                        counter[item.FieldName] = c + 1;
+                    }
+
+            m_DuplicateFieldNames.Clear();
+            foreach (var kv in counter)
+                if (kv.Value > 1)
+                    m_DuplicateFieldNames.Add(kv.Key);
         }
 
         // ── 样式初始化 ────────────────────────────────────────────────────────
@@ -100,10 +127,14 @@ namespace CQEditorTools
             {
                 alignment = TextAnchor.MiddleLeft
             };
-
             m_TypeLabelStyle = new GUIStyle(EditorStyles.miniLabel)
             {
                 alignment = TextAnchor.MiddleLeft
+            };
+            m_DupWarnStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                alignment = TextAnchor.MiddleRight,
+                normal    = { textColor = new Color(1f, 0.4f, 0.3f) }
             };
         }
 
@@ -111,6 +142,7 @@ namespace CQEditorTools
         private void OnGUI()
         {
             EnsureStyles();
+            RefreshDuplicates();   // 每帧刷新重复集合
             DrawInfoBar();
             DrawSeparator();
             DrawTreeArea();
@@ -134,6 +166,13 @@ namespace CQEditorTools
                 m_FormComponent != null ? m_FormComponent.GetType().Name : "-",
                 EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
+
+            // 重复字段警告
+            if (m_DuplicateFieldNames.Count > 0)
+                EditorGUILayout.LabelField(
+                    $"⚠ {m_DuplicateFieldNames.Count} 个字段名重复",
+                    m_DupWarnStyle, GUILayout.Width(160f));
+
             EditorGUILayout.LabelField(
                 $"节点：{m_Rows.Count}    组件：{CountSelected()} / {CountTotal()}",
                 EditorStyles.miniLabel, GUILayout.Width(180f));
@@ -152,14 +191,10 @@ namespace CQEditorTools
             EditorGUILayout.EndScrollView();
         }
 
-        /// <summary>
-        /// 一行格式：[缩进] 节点名:  [toggle]类型名  [toggle]类型名 ...
-        /// </summary>
         private void DrawNodeRow(NodeRow row, int rowIndex)
         {
             var rowRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(RowH));
 
-            // 交替行背景
             if (Event.current.type == EventType.Repaint)
             {
                 var bg = rowIndex % 2 == 0
@@ -168,27 +203,33 @@ namespace CQEditorTools
                 EditorGUI.DrawRect(rowRect, bg);
             }
 
-            // 层级缩进
             GUILayout.Space(row.Depth * IndentWidth);
 
-            // 节点名标签（含冒号，固定宽度）
             EditorGUILayout.LabelField(row.NodeName + ":", m_NodeLabelStyle,
                 GUILayout.Width(NodeLabelWidth));
 
-            // 内联组件勾选框列表
             foreach (var item in row.Items)
             {
-                item.IsSelected = EditorGUILayout.Toggle(
-                    item.IsSelected, GUILayout.Width(ToggleWidth));
+                bool prevSelected = item.IsSelected;
+                item.IsSelected = EditorGUILayout.Toggle(item.IsSelected, GUILayout.Width(ToggleWidth));
 
-                // tooltip 显示完整字段名
-                var content = new GUIContent(
-                    item.Entry.Component.GetType().Name,
-                    $"字段名：{item.FieldName}");
+                bool isDup  = item.IsSelected && m_DuplicateFieldNames.Contains(item.FieldName);
+                var  label  = $"{item.Entry.Component.GetType().Name} ({item.FieldName})";
+                var  tip    = isDup
+                    ? $"⚠ 字段名重复：{item.FieldName}"
+                    : $"字段名：{item.FieldName}";
+                var  content = new GUIContent(label, tip);
 
                 using (new EditorGUI.DisabledScope(!item.IsSelected))
-                    EditorGUILayout.LabelField(content, m_TypeLabelStyle,
-                        GUILayout.Width(TypeLabelWidth));
+                {
+                    var itemRect = GUILayoutUtility.GetRect(
+                        content, m_TypeLabelStyle, GUILayout.Width(TypeLabelWidth));
+
+                    if (isDup && Event.current.type == EventType.Repaint)
+                        EditorGUI.DrawRect(itemRect, s_DuplicateHighlight);
+
+                    GUI.Label(itemRect, content, m_TypeLabelStyle);
+                }
 
                 GUILayout.Space(ComponentGap);
             }
@@ -206,6 +247,8 @@ namespace CQEditorTools
                 SetAll(true);
             if (GUILayout.Button("全取消", GUILayout.Width(60f)))
                 SetAll(false);
+            if (GUILayout.Button("刷新", GUILayout.Width(60f)))
+                RefreshFromPrefab();
 
             GUILayout.FlexibleSpace();
 
@@ -221,9 +264,47 @@ namespace CQEditorTools
             EditorGUILayout.Space(4f);
         }
 
-        // ── 导出（Step 3：生成 Components.cs）───────────────────────────────
+        /// <summary>重新遍历预制件层级，用最新结果覆盖当前行列表。</summary>
+        private void RefreshFromPrefab()
+        {
+            var cfg = ExtractUIComponentConfig.GetOrCreate();
+            if (cfg == null || m_PrefabAsset == null)
+            {
+                EditorUtility.DisplayDialog("提示", "配置或预制件丢失，无法刷新。", "确定");
+                return;
+            }
+
+            var entries = ExtractUIComponentHierarchyCollector.Collect(m_PrefabAsset, cfg);
+            if (entries.Count == 0)
+            {
+                EditorUtility.DisplayDialog("提示",
+                    $"{m_PrefabAsset.name}：刷新后未收集到任何需要导出的组件。\n" +
+                    "请确认标记符和检索规则已正确配置。", "确定");
+                return;
+            }
+
+            BuildRows(entries);
+            Repaint();
+        }
+
+        // ── 导出（含重复字段拦截）────────────────────────────────────────────
         private void ExecuteExport()
         {
+            // 导出前再刷新一次，确保拦截状态最新
+            RefreshDuplicates();
+
+            if (m_DuplicateFieldNames.Count > 0)
+            {
+                var list = string.Join("\n  • ", m_DuplicateFieldNames);
+                EditorUtility.DisplayDialog(
+                    "存在重复字段名",
+                    "以下字段名在已勾选的组件中重复出现，导出已中断。\n" +
+                    "请修改 Hierarchy 中对应节点名称后重试：\n\n" +
+                    $"  • {list}",
+                    "确定");
+                return;
+            }
+
             var fields = BuildFieldEntries();
 
             if (ExtractUIComponentCodeWriter.Execute(m_FormComponent, fields, out var error))
@@ -249,9 +330,9 @@ namespace CQEditorTools
                     if (item.IsSelected)
                         list.Add(new ComponentFieldEntry
                         {
-                            FieldName = item.FieldName,
-                            ComponentType = item.Entry.Component.GetType(),
-                            NodePath = item.Entry.NodePath,
+                            FieldName                 = item.FieldName,
+                            ComponentType             = item.Entry.Component.GetType(),
+                            NodePath                  = item.Entry.NodePath,
                             AssemblyQualifiedTypeName = item.Entry.Component.GetType().AssemblyQualifiedName
                         });
             return list;
@@ -261,8 +342,7 @@ namespace CQEditorTools
         private int CountTotal()
         {
             int n = 0;
-            foreach (var r in m_Rows)
-                n += r.Items.Count;
+            foreach (var r in m_Rows) n += r.Items.Count;
             return n;
         }
 
@@ -271,8 +351,7 @@ namespace CQEditorTools
             int n = 0;
             foreach (var r in m_Rows)
                 foreach (var i in r.Items)
-                    if (i.IsSelected)
-                        n++;
+                    if (i.IsSelected) n++;
             return n;
         }
 

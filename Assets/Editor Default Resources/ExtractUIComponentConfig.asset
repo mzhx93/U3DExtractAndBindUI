@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: ExtractUIComponentConfig
   m_EditorClassIdentifier: 
   ValidPrefabRootPaths:
-  - Assets/GameAssets/UIForms
-  FormBaseTypeFullName: UnityGameFramework.Runtime.UIFormLogic
+  - Assets/Test/UIForm
+  FormBaseTypeFullName: ProjectUI.UIFormBase
   ComponentRules:
   - IsEnabled: 1
     ComponentTypeFullName: UnityEngine.RectTransform
-    FieldPrefix: Rect
+    FieldPrefix: RTrs
   - IsEnabled: 1
     ComponentTypeFullName: UnityEngine.UI.Image
     FieldPrefix: Img
@@ -36,7 +36,7 @@ MonoBehaviour:
     FieldPrefix: Scroll
   - IsEnabled: 1
     ComponentTypeFullName: UnityEngine.UI.Scrollbar
-    FieldPrefix: Scrollbar
+    FieldPrefix: Sbar
   - IsEnabled: 1
     ComponentTypeFullName: TMPro.TextMeshProUGUI
     FieldPrefix: Txt
@@ -49,10 +49,7 @@ MonoBehaviour:
   - IsEnabled: 1
     ComponentTypeFullName: UnityEngine.CanvasGroup
     FieldPrefix: CG
-  ExclusionRules:
-  - TriggerTypeFullName: UnityEngine.UI.Image
-    ExcludedTypeFullNames:
-    - UnityEngine.RectTransform
+  ExclusionRules: []
   RulesLayout:
     PrefixColWidth: 120
   Markers:

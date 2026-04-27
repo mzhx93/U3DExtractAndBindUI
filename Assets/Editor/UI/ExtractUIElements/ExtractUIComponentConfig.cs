@@ -11,21 +11,21 @@ namespace CQEditorTools
     public class ExportMarkers
     {
         /// <summary>仅导出：检索此节点组件，不影响子节点继承默认值。默认 @</summary>
-        public string Export          = "@";
+        public string Export = "@";
         /// <summary>仅跳过：不检索此节点组件，子节点继续遍历。默认 #</summary>
-        public string Skip            = "#";
+        public string Skip = "#";
         /// <summary>传播-导出：检索此节点，并将所有后代隐式默认改为导出。默认 =</summary>
         public string ExportPropagate = "=";
         /// <summary>传播-跳过：跳过此节点，并将所有后代隐式默认改为跳过。默认 -</summary>
-        public string SkipPropagate   = "-";
+        public string SkipPropagate = "-";
 
         /// <summary>将所有标记重置为内置默认值。</summary>
         public void ResetToDefault()
         {
-            Export          = "@";
-            Skip            = "#";
+            Export = "@";
+            Skip = "#";
             ExportPropagate = "=";
-            SkipPropagate   = "-";
+            SkipPropagate = "-";
         }
 
         /// <summary>返回当前标记符是否与默认值完全一致。</summary>
@@ -41,7 +41,7 @@ namespace CQEditorTools
         public string Validate()
         {
             string[] markers = { Export, Skip, ExportPropagate, SkipPropagate };
-            string[] labels  = { "导出标记", "跳过标记", "传播-导出标记", "传播-跳过标记" };
+            string[] labels = { "导出标记", "跳过标记", "传播-导出标记", "传播-跳过标记" };
 
             for (int i = 0; i < markers.Length; i++)
             {
@@ -61,11 +61,11 @@ namespace CQEditorTools
             }
 
             for (int i = 0; i < markers.Length; i++)
-            for (int j = i + 1; j < markers.Length; j++)
-            {
-                if (markers[i] == markers[j])
-                    return $"{labels[i]} 与 {labels[j]} 值相同（'{markers[i]}'），四个标记必须两两不同";
-            }
+                for (int j = i + 1; j < markers.Length; j++)
+                {
+                    if (markers[i] == markers[j])
+                        return $"{labels[i]} 与 {labels[j]} 值相同（'{markers[i]}'），四个标记必须两两不同";
+                }
 
             return null;
         }
@@ -187,13 +187,13 @@ namespace CQEditorTools
         {
             return new List<ComponentExportRule>
             {
-                new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.RectTransform",    FieldPrefix = "Rect"     },
+                new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.RectTransform",    FieldPrefix = "RTrs"     },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Image",         FieldPrefix = "Img"      },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Button",        FieldPrefix = "Btn"      },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Toggle",        FieldPrefix = "Tog"      },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Slider",        FieldPrefix = "Sld"      },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.ScrollRect",    FieldPrefix = "Scroll"   },
-                new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Scrollbar",     FieldPrefix = "Scrollbar"},
+                new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "UnityEngine.UI.Scrollbar",     FieldPrefix = "Sbar"},
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "TMPro.TextMeshProUGUI",        FieldPrefix = "Txt"      },
                 new ComponentExportRule { IsEnabled = true,  ComponentTypeFullName = "TMPro.TMP_InputField",         FieldPrefix = "Input"    },
                 new ComponentExportRule { IsEnabled = false, ComponentTypeFullName = "UnityEngine.UI.InputField",    FieldPrefix = "Input"    },
@@ -209,12 +209,12 @@ namespace CQEditorTools
     public static class ExtractUITableColors
     {
         /// <summary>偶数行叠加色（alpha 较低，适配亮色/暗色编辑器主题）。</summary>
-        public static readonly Color RowEven     = new Color(0f, 0f, 0f, 0.06f);
+        public static readonly Color RowEven = new Color(0f, 0f, 0f, 0.06f);
         /// <summary>奇数行不改色（完全透明）。</summary>
-        public static readonly Color RowOdd      = new Color(0f, 0f, 0f, 0f);
+        public static readonly Color RowOdd = new Color(0f, 0f, 0f, 0f);
         /// <summary>选中行高亮色。</summary>
         public static readonly Color RowSelected = new Color(0.17f, 0.36f, 0.53f, 1f);
         /// <summary>列分隔条颜色。</summary>
-        public static readonly Color Splitter    = new Color(0.5f, 0.5f, 0.5f, 0.4f);
+        public static readonly Color Splitter = new Color(0.5f, 0.5f, 0.5f, 0.4f);
     }
 }

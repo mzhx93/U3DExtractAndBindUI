@@ -117,5 +117,48 @@ namespace CQEditorTools
             var path = AssetDatabase.GetAssetPath(obj);
             return path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase);
         }
+
+        // ── Hierarchy 右键菜单 ────────────────────────────────────────────────
+
+        private const string MenuHierarchyUpdate = "GameObject/Tools/更新UI组件字段";
+
+        /// <summary>Hierarchy 右键触发：向上查找最外层 UIForm 预制件后打开预览窗口。</summary>
+        [MenuItem(MenuHierarchyUpdate, false, 100)]
+        private static void HierarchyUpdateUIComponentFields()
+        {
+            var cfg = ExtractUIComponentConfig.GetOrCreate();
+            if (cfg == null)
+            {
+                EditorUtility.DisplayDialog("提示", "未找到插件配置，请先通过 Window/界面工具/初始化 完成配置。", "确定");
+                return;
+            }
+
+            if (!ExtractUIComponentValidator.TryGetValidPrefabFromHierarchy(
+                    out var prefabAsset, out var formComponent, out var errorMsg))
+            {
+                EditorUtility.DisplayDialog("无效的 UIForm 预制件", errorMsg, "确定");
+                return;
+            }
+
+            var entries = ExtractUIComponentHierarchyCollector.Collect(prefabAsset, cfg);
+            if (entries.Count == 0)
+            {
+                EditorUtility.DisplayDialog("提示",
+                    $"{prefabAsset.name}：未收集到任何需要导出的组件。\n" +
+                    "请确认标记符和检索规则已正确配置。", "确定");
+                return;
+            }
+
+            ExtractUIComponentPreviewWindow.Open(prefabAsset, formComponent, entries);
+        }
+
+        /// <summary>Hierarchy 右键菜单可用性校验（轻量：有配置 + 有选中对象即可）。</summary>
+        [MenuItem(MenuHierarchyUpdate, true, 100)]
+        private static bool HierarchyUpdateUIComponentFieldsValidate()
+        {
+            if (ExtractUIComponentConfig.GetOrCreate() == null)
+                return false;
+            return Selection.activeGameObject != null;
+        }
     }
 }
