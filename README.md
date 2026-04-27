@@ -18,7 +18,7 @@
 
 ## 安装
 
-将 `Assets/Editor/UI/ExtractUIElements/` 目录整体复制到项目的 `Editor` 文件夹下即可。插件依赖：
+将 `Assets/Editor/UI/ExtractUIElements/` 目录整体复制到项目的 `Editor` 文件夹下即可。无其它依赖。
 
 ---
 
