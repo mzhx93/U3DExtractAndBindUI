@@ -1,0 +1,7 @@
+{
+    "name": "U3DExtractAndBindUI",
+    "version": "1.0.0",
+    "displayName": "U3DExtractAndBindUI",
+    "description": "解析UI组件，将UI组件导出且绑定字段",
+    "unity": "6000.0"
+}
